@@ -8,8 +8,13 @@ export default () => {
         setTimeout(()=>{
             observer.next('World');
         }, 2000);
+        observer.complete();
     });
-    
+    const observer = {
+        next: evt => displayLog(evt),
+        error: evt => console.error(evt),
+        complete:() =>displayLog('[Done]')
+    }
     const subscribe = hello.subscribe(evt => displayLog(evt));
     /** end coding */
 }
