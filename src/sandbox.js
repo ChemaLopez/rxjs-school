@@ -10,8 +10,8 @@ export default () => {
     
     const inputBox = document.getElementById('input-box');
     const inputSrc = fromEvent(inputBox, 'input').pipe(
+        debounceTime(120),
         map(evt => event.target.value),
-        debounceTime(120)
     )
 
 
