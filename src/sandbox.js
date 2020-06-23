@@ -1,6 +1,6 @@
 import { updateDisplay, displayLog } from './utils';
-import { fromEvent } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { fromEvent,zip,merge } from 'rxjs';
+import { map, tap,scan, filter, distinctUntilChanged } from 'rxjs/operators';
 
 export default () => {
     /** start coding */
@@ -58,8 +58,41 @@ export default () => {
 
 
     //TODO: draw current line
+    const drawCurrentLine = zip(mouseStart$, mouseEnd$).pipe(
+        tap(console.log),
+        map(([origin,destiny])=>{
+            return {
+                origin: origin.coords,
+                destiny: destiny.coords
+            }
+        })
+    );
 
-    
+    const drawCurrentLinePreview = merge(mouseStart$,mouseMove$, mouseEnd$).pipe(
+        scan(computeDrawScan,{label: 'init'}),
+        filter(data => data.origin && data.coords),
+        distinctUntilChanged(),
+        tap(console.log)
+    );
+
+    function computeDrawScan(prevEvent, currentEvent){
+        switch(prevEvent.label){
+            case 'init':
+            case 'end':
+                if(currentEvent.label === 'start'){
+                    return {
+                        origin: currentEvent.coords,...currentEvent,
+                    }
+                }
+                break;
+            case 'start':
+            case 'drawing':
+                return { origin: prevEvent.origin, ...currentEvent}
+        }
+        return prevEvent;
+    }
+
+    drawCurrentLinePreview.subscribe(data => drawLine (data.origin, data.coords));
 
     /** end coding */
 }
