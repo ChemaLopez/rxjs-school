@@ -1,7 +1,7 @@
 import { updateDisplay, displayLog } from './utils';
 import { api } from './api';
 import { fromEvent } from 'rxjs';
-import { map, scan, tap, concatMap } from 'rxjs/operators';
+import { map, scan, tap, concatMap, catchError, retry } from 'rxjs/operators';
 
 export default () => {
     /** start coding */
@@ -11,10 +11,15 @@ export default () => {
     /** get comments on button click */
     fromEvent(button, 'click').pipe(
         scan((acc, evt) => acc + 1, 0),            
-        concatMap(id => api.getComment(id)),
+        concatMap(id => api.getComment(id).pipe(
+            //catchError((err, src) =>{
+            //    console.log("Error: ", err); return src;
+            //})
+            retry(2)
+        )),
         map(JSON.stringify),
         tap(console.log),
-    ).subscribe(displayLog);
+    ).subscribe(displayLog,err=>console.log("Error: ", err));
 
     /** end coding */
 }
